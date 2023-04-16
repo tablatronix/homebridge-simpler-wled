@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadEffects = exports.httpSendData = void 0;
+exports.loadEffects = exports.loadPresets = exports.httpSendData = void 0;
 const axios = require('axios').default;
 function httpSendData(url, method, data, callback) {
     if (method.toLowerCase() == "post") {
@@ -23,6 +23,26 @@ function httpSendData(url, method, data, callback) {
     }
 }
 exports.httpSendData = httpSendData;
+async function loadPresets(hosts) {
+    return new Promise((resolve, reject) => {
+        let host;
+        if (hosts instanceof Array) {
+            host = hosts[0];
+        }
+        else {
+            host = hosts;
+        }
+        httpSendData(`http://${host}/presets.json`, "GET", {}, (error, response) => {
+            if (error || response == null) {
+                return reject(`Error while loading all presets on ${host}`);
+            }
+            ;
+            console.log(`Loaded all presets for ${host}`);
+            resolve(response.data);
+        });
+    });
+}
+exports.loadPresets = loadPresets;
 async function loadEffects(hosts) {
     return new Promise((resolve, reject) => {
         let host;

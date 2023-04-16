@@ -28,9 +28,14 @@ class WLEDPlatform {
                 this.log("No host or IP address has been configured.");
                 return;
             }
-            (0, utils_1.loadEffects)(wled.host).then((effects) => {
-                this.wleds.push(new wled_accessory_1.WLED(this, wled, effects));
-            }).catch((error) => {
+            (0, utils_1.loadPresets)(wled.host)
+                .then((presets) => {
+                return presets;
+            })
+                .then((presets) => {
+                this.wleds.push(new wled_accessory_1.WLED(this, wled, presets));
+            })
+                .catch((error) => {
                 console.log(error);
             });
         }

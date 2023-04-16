@@ -1,5 +1,10 @@
 const axios = require('axios').default;
 
+interface Preset {
+    n: string;
+    ql: string;
+  }
+
 export function httpSendData(url: string, method: string, data: object, callback: Function): void {
     if (method.toLowerCase() == "post") {
         axios.post(String(url), data)
@@ -19,6 +24,21 @@ export function httpSendData(url: string, method: string, data: object, callback
             })
     }
 }
+export async function loadPresets(hosts:any): Promise<Array<string>>{
+    return new Promise((resolve, reject) => {
+        let host:string;
+        if(hosts instanceof Array){
+            host = hosts[0];
+        }else{
+            host = hosts;
+        }
+        httpSendData(`http://${host}/presets.json`, "GET", {}, (error: any, response: any) => {
+          if (error || response == null) { return reject(`Error while loading all presets on ${host}`); };
+          console.log(`Loaded all presets for ${host}`);
+          resolve(response.data);
+        })
+    });
+  }
 
 export async function loadEffects(hosts:any): Promise<Array<string>> {
     return new Promise((resolve, reject) => {
@@ -35,3 +55,4 @@ export async function loadEffects(hosts:any): Promise<Array<string>> {
         })
     });
   }
+
