@@ -2,9 +2,6 @@
 
 Homebridge Plugin for WLED Strip ([WLED-Project by Aircoookie](https://github.com/Aircoookie/WLED))
 
-### ❓HELP
-For faster support and Informations join my discord https://discord.gg/qpbUtZCB2H
-
 ### ⚙️ Installation / NPM Package
 For downloading and installing the Plugin NPM is used in Homebridge: [Link to NPM Package](https://www.npmjs.com/package/homebridge-simple-wled)
 
@@ -19,13 +16,13 @@ To make the accessory visible in your HomeKIT App you have to add the Platform-A
                 {
                     "name": "LED-Tisch",
                     "host": "10.0.0.52",
-                    "effects": ["Rainbow Runner", "Circus"],
+                    "presets": [1,2,3],
                     "log": true
                 },
                 {
                     "name": "LED-Kasten",
                     "host": ["10.0.0.53", "10.0.0.54"],
-                    "effects": ["Rainbow Runner", "Circus"],
+                    "presets": [1,2,3],
                 }
             ]
         }
@@ -142,37 +139,10 @@ Note: The first WLED-host will act like a main-WLED, so for example, you change 
     ]
 ```
 
-## 🌦 Adding a switch for Ambilight/Moodlight or Adalight/Moodlight
-If you want to add a switch, to switch between Ambilight and Moodlight you have to add the "ambilightSwitch" option. This works also with multiple IP-Adresses and effects like described above.
-
-If not specified, it's default off/false
-
-```
-    "platforms": [
-                {
-            "platform": "WLED",
-            "wleds": [
-                {
-                    "name": "LED-Tisch",
-                    "host": "10.0.0.52",
-                    "effects": ["Rainbow Runner", "Circus", "Merry Christmas", "Fireworks"],
-                    "log": false,
-                    "ambilightSwitch": true
-                }
-            ]
-        }
-    ]
-```
-
 ## Contributing
 If you have any idea, feel free to fork it and submit your changes back to me.
 
 ## Donation
 You can also support me developing this plugin by buying me a coffee and giving me motivation to keep this plugin up to date and continue developing.
 
-Thanks to everyone who is donating to me.
-
-Buy me a coffee to stay motivated for programming :D
-<br>
-<a href="https://www.buymeacoffee.com/jstrausd" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/arial-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
