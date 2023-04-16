@@ -15,7 +15,6 @@ class WLED {
         /*  LOCAL CACHING VARIABLES */
         this.isOffline = false;
         this.on = false;
-        this.ambion = false;
         this.brightness = -1;
         this.hue = 100;
         this.saturation = 100;
@@ -32,7 +31,6 @@ class WLED {
         this.effectSpeed = wledConfig.defaultEffectSpeed || 15;
         this.showEffectControl = wledConfig.showEffectControl ? true : false;
         this.lastActivePreset = wledConfig.presets ? wledConfig.presets[0] : 0;
-        this.ambilightSwitch = wledConfig.ambilightSwitch ? true : false;
         this.enabledPresets = wledConfig.presets || [];
         if (wledConfig.host instanceof Array && wledConfig.host.length > 1) {
             this.host = wledConfig.host;
@@ -56,11 +54,6 @@ class WLED {
         if (this.showEffectControl) {
             this.speedService = this.wledAccessory.addService(this.api.hap.Service.Lightbulb, 'Effect Speed', 'SPEED');
             this.lightService.addLinkedService(this.speedService);
-        }
-        if (this.ambilightSwitch) {
-            this.ambilightService = this.wledAccessory.addService(this.api.hap.Service.Lightbulb, 'Ambilight', 'AMBI');
-            this.lightService.addLinkedService(this.ambilightService);
-            this.registerCharacteristicAmbionOff();
         }
         this.registerCharacteristicOnOff();
         this.registerCharacteristicBrightness();
@@ -113,25 +106,6 @@ class WLED {
             callback();
         });
     }
-    // registerCharacteristicAmbionOff(): void {
-    //   this.ambilightService.getCharacteristic(this.hap.Characteristic.On)
-    //     .on(CharacteristicEventTypes.GET, (callback: CharacteristicGetCallback) => {
-    //       if (this.debug)
-    //         this.log("Current state of the switch was returned: " + (this.ambion ? "ON" : "OFF"));
-    //       callback(undefined, this.ambion);
-    //     })
-    //     .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
-    //       this.ambion = value as boolean;
-    //       if (this.ambion) {
-    //         this.turnOnAmbilight();
-    //       } else {
-    //         this.turnOffAmbilight();
-    //       }
-    //       if (this.debug)
-    //         this.log("Switch state was set to: " + (this.ambion ? "ON" : "OFF"));
-    //       callback();
-    //     });
-    // }
     registerCharacteristicBrightness() {
         this.lightService
             .getCharacteristic(this.hap.Characteristic.Brightness)
@@ -306,25 +280,6 @@ class WLED {
     }`);
         this.lightService.updateCharacteristic(this.hap.Characteristic.Brightness, 100);
         this.on = true;
-    }
-    turnOffAmbilight() {
-        // this.host.forEach((host) => {
-        //   httpSendData(`http://${host}/win&LO=1`, "GET", {}, (error: any, response: any) => { if (error) return; });
-        // });
-        this.sendMessage(`
-      "lor": 1
-    `);
-        this.ambion = false;
-    }
-    turnOnAmbilight() {
-        // this.host.forEach((host) => {
-        //   httpSendData(`http://${host}/win&LO=0`, "GET", {}, (error: any, response: any) => { if (error) return; });
-        // });
-        this.sendMessage(`
-      "lor": 0
-    `);
-        this.lightService.updateCharacteristic(this.hap.Characteristic.Brightness, 100);
-        this.ambion = true;
     }
     turnOffAllPresets() {
         if (!this.disablePresetsSwitch) {

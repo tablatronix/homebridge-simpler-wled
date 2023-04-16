@@ -34,8 +34,6 @@ export class WLED {
   private host: Array<string>;
 
   private lightService: Service;
-  // private palette2: Service;
-  private ambilightService!: Service;
   private speedService!: Service;
   private presetsService!: Service;
 
@@ -47,7 +45,6 @@ export class WLED {
   private multipleHosts: boolean;
   private disablePresetsSwitch: boolean;
   private showEffectControl: boolean;
-  private ambilightSwitch: boolean;
   private preset: number = -1;
 
 
@@ -56,7 +53,6 @@ export class WLED {
   private isOffline = false;
 
   private on = false;
-  private ambion = false;
   private brightness = -1;
   private hue = 100;
   private saturation = 100;
@@ -79,7 +75,6 @@ export class WLED {
     this.effectSpeed = wledConfig.defaultEffectSpeed || 15;
     this.showEffectControl = wledConfig.showEffectControl ? true : false;
     this.lastActivePreset = wledConfig.presets ? wledConfig.presets[0]:0;
-    this.ambilightSwitch = wledConfig.ambilightSwitch ? true : false;
     this.enabledPresets = wledConfig.presets || [];
 
 
@@ -112,12 +107,6 @@ export class WLED {
     if (this.showEffectControl) {
       this.speedService = this.wledAccessory.addService(this.api.hap.Service.Lightbulb, 'Effect Speed', 'SPEED');
       this.lightService.addLinkedService(this.speedService);
-    }
-
-    if (this.ambilightSwitch) {
-      this.ambilightService = this.wledAccessory.addService(this.api.hap.Service.Lightbulb, 'Ambilight', 'AMBI');
-      this.lightService.addLinkedService(this.ambilightService);
-      this.registerCharacteristicAmbionOff();
     }
 
     this.registerCharacteristicOnOff();
@@ -175,28 +164,6 @@ export class WLED {
 
   }
 
-  // registerCharacteristicAmbionOff(): void {
-
-  //   this.ambilightService.getCharacteristic(this.hap.Characteristic.On)
-  //     .on(CharacteristicEventTypes.GET, (callback: CharacteristicGetCallback) => {
-  //       if (this.debug)
-  //         this.log("Current state of the switch was returned: " + (this.ambion ? "ON" : "OFF"));
-
-  //       callback(undefined, this.ambion);
-  //     })
-  //     .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
-  //       this.ambion = value as boolean;
-  //       if (this.ambion) {
-  //         this.turnOnAmbilight();
-  //       } else {
-  //         this.turnOffAmbilight();
-  //       }
-  //       if (this.debug)
-  //         this.log("Switch state was set to: " + (this.ambion ? "ON" : "OFF"));
-  //       callback();
-  //     });
-
-  // }
 
   registerCharacteristicBrightness(): void {
 
@@ -394,27 +361,6 @@ export class WLED {
     }`)
     this.lightService.updateCharacteristic(this.hap.Characteristic.Brightness, 100);
     this.on = true;
-  }
-
-  turnOffAmbilight(): void {
-    // this.host.forEach((host) => {
-    //   httpSendData(`http://${host}/win&LO=1`, "GET", {}, (error: any, response: any) => { if (error) return; });
-    // });
-    this.sendMessage(`
-      "lor": 1
-    `);
-    this.ambion = false;
-  }
-
-  turnOnAmbilight(): void {
-    // this.host.forEach((host) => {
-    //   httpSendData(`http://${host}/win&LO=0`, "GET", {}, (error: any, response: any) => { if (error) return; });
-    // });
-    this.sendMessage(`
-      "lor": 0
-    `);
-    this.lightService.updateCharacteristic(this.hap.Characteristic.Brightness, 100);
-    this.ambion = true;
   }
 
   turnOffAllPresets(): void {
