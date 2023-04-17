@@ -45,7 +45,7 @@ sample additional option:
                 {
                     "name": "LED-Tisch",
                     "host": "10.0.0.52",
-                    "presets": ["Rainbow Runner", "Circus", "Merry Christmas", "Fireworks"],
+                    "presets": [1,2,3],
                     "log": false
                 }
             ]
