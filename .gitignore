@@ -1,5 +1,6 @@
 node_modules/
 .vscode
 package-lock.json
-homebridge-simple-wled.code-workspace
+homebridge-wled-presets.code-workspace
 dist/
+config.json

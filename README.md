@@ -3,7 +3,7 @@
 Homebridge Plugin for WLED Strip ([WLED-Project by Aircoookie](https://github.com/Aircoookie/WLED))
 
 ### ⚙️ Installation / NPM Package
-For downloading and installing the Plugin NPM is used in Homebridge: [Link to NPM Package](https://www.npmjs.com/package/homebridge-simple-wled)
+For downloading and installing the Plugin NPM is used in Homebridge: [Link to NPM Package](https://www.npmjs.com/package/homebridge-wled-presets)
 
 ## 🔨 Adding the Accessory to the config.json
 To make the accessory visible in your HomeKIT App you have to add the Platform-Accessory to the config.json to the platforms section:
