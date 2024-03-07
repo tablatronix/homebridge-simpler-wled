@@ -1,2 +1,2 @@
-export const PLUGIN_NAME = 'homebridge-wled-presets';
-export const PLATFORM_NAME = 'WLED Presets';
+export const PLUGIN_NAME = 'homebridge-simpler-wled';
+export const PLATFORM_NAME = 'Simpler WLED';
