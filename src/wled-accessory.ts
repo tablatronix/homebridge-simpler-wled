@@ -19,16 +19,13 @@ interface Preset {
   name: string;
 }
 
-export class WLED {
+export class WLEDAccessory {
   private readonly log: Logging;
   private hap: HAP;
   private api: API;
   private segments: Array<any> = [];
-  private platform: WLEDPlatform;
   private ws: Array<any> = [];
   private Characteristic: any;
-
-  private wledAccessory: PlatformAccessory;
 
   private name: string;
   private host: Array<string>;
@@ -53,7 +50,7 @@ export class WLED {
   private isOffline = false;
 
   private on = false;
-  private brightness = -1;
+  private brightness = 0;
   private hue = 100;
   private saturation = 100;
   private colorArray = [255, 0, 0];
@@ -67,7 +64,12 @@ export class WLED {
 
   /*  END LOCAL CACHING VARIABLES */
 
-  constructor(platform: WLEDPlatform, wledConfig: any, loadedPresets: Array<any>) {
+  constructor(
+    private readonly platform: WLEDPlatform,
+    private readonly accessory: PlatformAccessory,
+    wledConfig: any,
+    loadedPresets: Array<any>
+  ) {
     this.log = platform.log;
     this.name = wledConfig.name || 'WLED';
     this.prodLogging = wledConfig.log || false;
@@ -76,6 +78,11 @@ export class WLED {
     this.showEffectControl = wledConfig.showEffectControl ? true : false;
     this.lastActivePreset = wledConfig.presets ? wledConfig.presets[0]:0;
     this.enabledPresets = wledConfig.presets || [];
+
+    this.accessory.getService(this.platform.Service.AccessoryInformation)!
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'QuinLED')
+      .setCharacteristic(this.platform.Characteristic.Model, 'DigQuad')
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'v4');
 
 
     if (wledConfig.host instanceof Array && wledConfig.host.length > 1) {
@@ -90,30 +97,30 @@ export class WLED {
     this.api = platform.api;
     this.hap = this.api.hap;
     this.Characteristic = this.api.hap.Characteristic;
-    const uuid = this.api.hap.uuid.generate('homebridge:wled' + this.name);
-
-    if ((this.wledAccessory = this.platform.accessories.find((x: PlatformAccessory) => x.UUID === uuid)!) === undefined) {
-
-      this.wledAccessory = new this.api.platformAccessory(this.name, uuid);
-
-    }
 
     this.log.info("Setting up Accessory " + this.name + " with Host-IP: " + this.host + ((this.multipleHosts) ? " Multiple WLED-Hosts configured" : " Single WLED-Host configured"));
 
-    this.wledAccessory.category = this.api.hap.Categories.LIGHTBULB;
+    // this.accessory.category = this.api.hap.Categories.LIGHTBULB;
 
-    this.lightService = this.wledAccessory.addService(this.api.hap.Service.Lightbulb, this.name, 'LIGHT');
+    this.lightService =
+      this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
+    
+    // console.log(this.lightService);
+    // this.lightService.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+    // this.lightService = this.accessory.addService(this.api.hap.Service.Lightbulb, this.name, 'LIGHT');
 
-    if (this.showEffectControl) {
-      this.speedService = this.wledAccessory.addService(this.api.hap.Service.Lightbulb, 'Effect Speed', 'SPEED');
-      this.lightService.addLinkedService(this.speedService);
-    }
+    // if (this.showEffectControl) {
+    //   this.speedService = this.accessory.addService(this.api.hap.Service.Lightbulb, 'Effect Speed', 'SPEED');
+    //   this.lightService.addLinkedService(this.speedService);
+    // }
 
     this.registerCharacteristicOnOff();
     this.registerCharacteristicBrightness();
     this.registerCharacteristicSaturation();
     this.registerCharacteristicHue();
-    this.presetsService = this.wledAccessory.addService(this.api.hap.Service.Television);
+    
+    this.presetsService = this.accessory.getService(this.platform.Service.Television) ||
+      this.accessory.addService(this.platform.Service.Television);
     this.presetsService.setCharacteristic(this.Characteristic.ConfiguredName, "Presets"); 
     this.presetsService
       .getCharacteristic(this.Characteristic.Active)
@@ -132,11 +139,10 @@ export class WLED {
       })
     this.addPresetsInputSources(loadedPresets);
     this.openSockets(wledConfig.host);
-    this.api.publishExternalAccessories(PLUGIN_NAME, [this.wledAccessory]);
-    this.platform.accessories.push(this.wledAccessory);
+    // this.api.publishExternalAccessories(PLUGIN_NAME, [this.accessory]);
+    // this.platform.accessories.push(this.accessory);
 
-    this.api.updatePlatformAccessories([this.wledAccessory]);
-    this.log.info("WLED Strip finished initializing!");
+    // this.api.updatePlatformAccessories([this.accessory]);
 
   }
 
@@ -170,6 +176,8 @@ export class WLED {
     this.lightService
       .getCharacteristic(this.hap.Characteristic.Brightness)
       .on(CharacteristicEventTypes.GET, (callback: CharacteristicGetCallback) => {
+        // this.log.info('Brightness: '+this.brightness);
+        this.brightness = Math.round(this.brightness/255*100);
         callback(undefined, this.brightness);
       })
       .on(CharacteristicEventTypes.SET, (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
@@ -178,8 +186,7 @@ export class WLED {
         this.httpSetBrightness();
 
         if (this.prodLogging)
-          this.log("Set brightness to " + value + "% " + this.brightness);
-
+          this.log.info("Set brightness to " + value + "% " + this.brightness);
         callback();
       });
   }
@@ -244,6 +251,7 @@ export class WLED {
   }
 
   parseMessage(state:any): void {
+    // console.log('State: ',state);
     this.saveColorArrayAsHSV(state.seg[0].col[0]);
     this.segments = state.seg.length;
     this.on = state.on;
@@ -265,6 +273,7 @@ export class WLED {
   }
 
   openSockets(hosts:any): void {
+    // this.log.info('opening socket');
     hosts = (hosts instanceof Array)? hosts: [hosts];
     hosts.forEach((host: string, i:number)=>{
       this.ws.push(new WebSocket(`ws://${host}/ws`, {
@@ -299,18 +308,25 @@ export class WLED {
     if (this.prodLogging) {
         this.log("Adding presets: " + presets);
     }
+    
     Object.entries(presets).forEach(entry => {
       const [key, value] = entry;
 
       if((this.enabledPresets.indexOf(parseInt(key))) < 0) return;
       let label = (value.ql?`${value.ql} `:'')+`${value.n} `;
-      const presetInputSource = this.wledAccessory.addService(this.hap.Service.InputSource, key, label);
+      // this.log.info(label, key);
+      
+      const presetInputSource = this.accessory.getService('Preset '+key) || this.accessory.addService(this.hap.Service.InputSource, label, label);
+
       presetInputSource
-          .setCharacteristic(this.Characteristic.Identifier, key)
-          .setCharacteristic(this.Characteristic.ConfiguredName, label)
-          .setCharacteristic(this.Characteristic.IsConfigured, this.Characteristic.IsConfigured.CONFIGURED)
-          .setCharacteristic(this.Characteristic.InputSourceType, this.Characteristic.InputSourceType.HDMI);
-      this.presetsService.addLinkedService(presetInputSource)
+        .setCharacteristic(this.Characteristic.Identifier, key)
+        .setCharacteristic(this.Characteristic.ConfiguredName, label)
+        .setCharacteristic(this.Characteristic.IsConfigured, this.Characteristic.IsConfigured.CONFIGURED)
+        .setCharacteristic(this.Characteristic.InputSourceType, this.Characteristic.InputSourceType.HDMI)
+        .subtype = 'Preset '+key;
+
+      this.presetsService.addLinkedService(presetInputSource);
+
     });
     this.presetsService
       .getCharacteristic(this.Characteristic.ActiveIdentifier)
@@ -334,18 +350,19 @@ export class WLED {
     if (this.debug)
       this.log("COLOR ARRAY BRIGHTNESS: " + colorArray);
 
-    // this.host.forEach((host) => {
-    //   httpSendData(`http://${host}/json`, "POST", { "bri": this.brightness }, (error: any, response: any) => { if (error) return; });
-    // });
+    // console.log(this.host);
+    this.host.forEach((host) => {
+      httpSendData(`http://${host}/json`, "POST", { "bri": this.brightness }, (error: any, response: any) => { if (error) return; });
+    });
     this.sendMessage(`
     { "bri": ${this.brightness} }
     `);
   }
 
   turnOffWLED(): void {
-    // this.host.forEach((host) => {
-    //   httpSendData(`http://${host}/win&T=0`, "GET", {}, (error: any, response: any) => { if (error) return; });
-    // });
+    this.host.forEach((host) => {
+      httpSendData(`http://${host}/win&T=0`, "GET", {}, (error: any, response: any) => { if (error) return; });
+    });
     this.sendMessage(`{
       "on": false
     }`)
@@ -353,9 +370,9 @@ export class WLED {
   }
 
   turnOnWLED(): void {
-    // this.host.forEach((host) => {
-    //   httpSendData(`http://${host}/win&T=1`, "GET", {}, (error: any, response: any) => { if (error) return; });
-    // });
+    this.host.forEach((host) => {
+      httpSendData(`http://${host}/win&T=1`, "GET", {}, (error: any, response: any) => { if (error) return; });
+    });
     this.sendMessage(`{
       "on": true
     }`)
