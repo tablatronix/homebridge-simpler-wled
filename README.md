@@ -1,3 +1,14 @@
+My FORK of this very broken fork of a very broken plugin
+Becuase issues are not enabled.
+
+I doubt I will get to fixing these, and probably switch to homeassistant for wled control as all plugins suck
+
+
+
+
+
+
+
 # Homebridge WLED Presets
 
 Homebridge Plugin for WLED Strip ([WLED-Project by Aircoookie](https://github.com/Aircoookie/WLED))
