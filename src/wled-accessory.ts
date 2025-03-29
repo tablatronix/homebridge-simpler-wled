@@ -251,8 +251,8 @@ export class WLEDAccessory {
   }
 
   parseMessage(state:any): void {
-    // console.log('State: ',state);
-    this.saveColorArrayAsHSV(state.seg[0].col[0]);
+    console.log('State: ',state);
+    // this.saveColorArrayAsHSV(state.seg[0].col[0]);
     this.segments = state.seg.length;
     this.on = state.on;
     this.brightness = Math.round(100 * state.bri/255 );
